@@ -1,4 +1,7 @@
 ;(function(){
+        require('dotenv').config();
+        console.log(process.env);
+
 	var cluster = require('cluster');
 	if(cluster.isMaster){
 	  return cluster.fork() && cluster.on('exit',function(){ cluster.fork(); require('../lib/crashed') });
@@ -28,7 +31,16 @@
 		opt.server = require('http').createServer(GUN.serve(__dirname));
 	}
 
-	var gun = GUN({web: opt.server.listen(opt.port), peers: opt.peers});
+        var gun = GUN({
+           web: opt.server.listen(opt.port),
+           peers: opt.peers,
+           s3: {
+                 key: process.env.AWS_ACCESS_KEY_ID, // AWS Access Key
+                 secret: process.env.AWS_SECRET_ACCESS_KEY, // AWS Secret Token
+                 bucket: process.env.AWS_S3_BUCKET // The bucket you want to save into
+              }
+           });
+
 	console.log('Relay peer started on port ' + opt.port + ' with /gun');
 	module.exports = gun;
 }());
